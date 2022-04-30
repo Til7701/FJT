@@ -6,11 +6,11 @@ public class ArraySearch extends Thread {
     private static final String in = "vorhanden";
     private static final String notIn = "nicht vorhanden";
 
-    private int[] array;
-    private int start;
-    private int end;
-    private int target;
-    private String part;
+    private final int[] array;
+    private final int start;
+    private final int end;
+    private final int target;
+    private final String part;
 
     private ArraySearch(int[] array, int start, int end, int target, String part) {
         this.array = array;
@@ -36,13 +36,13 @@ public class ArraySearch extends Thread {
     }
 
     private void printResult(boolean result) {
-        System.out.printf((output) + "%n%n", target, part, result ? in : notIn);
+        System.out.printf((output) + "%n", target, part, result ? in : notIn);
     }
 
     public static void searchForEntry(int[] array, int target) {
         int middle = array.length / 2;
-        new ArraySearch(array, 0, middle, target, "linken");
-        new ArraySearch(array, middle + 1, array.length - 1, target, "rechten");
+        new ArraySearch(array, 0, middle, target, "linken").start();
+        new ArraySearch(array, middle + 1, array.length - 1, target, "rechten").start();
     }
 
     public static void main(String[] args) {

@@ -1,5 +1,5 @@
 // vergleiche Oechsle, Seite 59ff
-package grundlagen;
+package de.holube.ex.ex01;
 
 import java.util.ArrayList; 
 import java.util.List;
