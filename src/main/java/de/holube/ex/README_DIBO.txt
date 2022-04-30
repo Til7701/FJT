@@ -1,0 +1,2 @@
+Die Klassen in den "alternatives" Packages sind nur Implementierungen, die ich aus Spaß gemacht habe. Diese entsprechen
+nicht wörtlich der Aufgabenstellung und sollen nicht die Abgabe sein. Sie sind nur ein kleines Extra.

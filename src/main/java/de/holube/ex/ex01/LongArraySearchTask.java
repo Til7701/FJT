@@ -3,22 +3,40 @@ package de.holube.ex.ex01;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * Task to search for a given value in a long array.
+ *
+ * @author Tilman Holube
+ */
 public class LongArraySearchTask implements Task<long[], Long> {
-
-    private static final int MAX_ARRAY_LENGTH = 1000;
 
     private final long[] array;
     private final int start;
     private final int end;
     private final long target;
 
+    /**
+     * Constructor to create a task for a given array.
+     * This is the same as {@code new LongArraySearchTask(array, 0, array.length - 1, target)}
+     *
+     * @param array  the array to search in
+     * @param target the target value
+     */
     public LongArraySearchTask(long[] array, long target) {
         this.array = array;
         this.start = 0;
-        this.end = array.length - 1;
+        this.end = array.length;
         this.target = target;
     }
 
+    /**
+     * Constructor to create a task for a given array.
+     *
+     * @param array  the array to search in
+     * @param start  the start index
+     * @param end    the end index (exclusive)
+     * @param target the target value
+     */
     public LongArraySearchTask(long[] array, int start, int end, long target) {
         this.array = array;
         this.start = start;
@@ -28,13 +46,15 @@ public class LongArraySearchTask implements Task<long[], Long> {
 
     @Override
     public boolean isDivisible() {
-        return end - start > MAX_ARRAY_LENGTH;
+        // this task is only once divisible
+        if (array.length <= 4) return false;
+        return start == 0 && end == array.length;
     }
 
     @Override
     public Long execute() {
         long sum = 0;
-        for (int i = start; i <= end; i++) {
+        for (int i = start; i < end; i++) {
             if (array[i] == target) {
                 sum++;
             }
@@ -44,10 +64,13 @@ public class LongArraySearchTask implements Task<long[], Long> {
 
     @Override
     public List<Task<long[], Long>> split() {
-        List<Task<long[], Long>> subTasks = new ArrayList<>();
-        for (int i = start; i <= end; i += MAX_ARRAY_LENGTH) {
-            int end = Math.min(i + MAX_ARRAY_LENGTH, array.length - 1);
-            subTasks.add(new LongArraySearchTask(array, i, end, target));
+        int threads = Runtime.getRuntime().availableProcessors();
+        List<Task<long[], Long>> subTasks = new ArrayList<>(threads);
+        for (int i = 0; i < threads; i++) {
+            int newStart = start + ((end - start) / threads) * i;
+            int newEnd = end;
+            if (i != threads - 1) newEnd = start + ((end - start) / threads) * (i + 1);
+            subTasks.add(new LongArraySearchTask(array, newStart, newEnd, target));
         }
         return subTasks;
     }
