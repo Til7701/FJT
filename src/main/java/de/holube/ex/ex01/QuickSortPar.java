@@ -1,7 +1,5 @@
 package de.holube.ex.ex01;
 
-import java.util.Arrays;
-
 public class QuickSortPar {
 
     // sortiert das uebergebene Array in aufsteigender Reihenfolge
@@ -88,13 +86,5 @@ public class QuickSortPar {
             zahlen[index1] = zahlen[index2];
             zahlen[index2] = help;
         }
-    }
-
-    // Testprogramm
-    public static void main(String[] args) {
-        int[] zahlen = {2, 3, 9, 33, -2, 4, 55, 66, -234};
-        System.out.println(Arrays.toString(zahlen));
-        sort(zahlen);
-        System.out.println(Arrays.toString(zahlen));
     }
 }
