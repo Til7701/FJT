@@ -20,6 +20,12 @@ public class QuickSortPar {
             while (t1.isAlive()) {
                 try {
                     t1.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+            while (t2.isAlive()) {
+                try {
                     t2.join();
                 } catch (InterruptedException e) {
                     e.printStackTrace();
