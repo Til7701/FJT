@@ -67,9 +67,8 @@ public class LongArraySearchTask implements Task<long[], Long> {
         int threads = Runtime.getRuntime().availableProcessors();
         List<Task<long[], Long>> subTasks = new ArrayList<>(threads);
         for (int i = 0; i < threads; i++) {
-            int newStart = start + ((end - start) / threads) * i;
-            int newEnd = end;
-            if (i != threads - 1) newEnd = start + ((end - start) / threads) * (i + 1);
+            int newStart = start + i * (end - start) / threads;
+            int newEnd = start + (i + 1) * (end - start) / threads;
             subTasks.add(new LongArraySearchTask(array, newStart, newEnd, target));
         }
         return subTasks;
