@@ -7,7 +7,7 @@ package de.holube.ex.ex02;
  */
 public class Logger {
 
-    private static Logger logger = null;
+    private volatile static Logger logger = null;
 
     private String[] messages = null;
     private int index = 0;
@@ -22,11 +22,17 @@ public class Logger {
      *
      * @return the logger
      */
-    public static synchronized Logger getLogger() {
-        if (logger == null) {
-            logger = new Logger(2);
+    public static Logger getLogger() {
+        Logger tmpLogger = logger;
+        if (tmpLogger == null) {
+            synchronized (Logger.class) {
+                if (logger == null) {
+                    logger = new Logger(2);
+                    return logger;
+                }
+            }
         }
-        return logger;
+        return tmpLogger;
     }
 
     /**
@@ -53,7 +59,7 @@ public class Logger {
      */
     public synchronized void clear() {
         index = 0;
-        logger = null;
+        messages = new String[2];
     }
 
     /**
