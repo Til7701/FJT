@@ -2,7 +2,7 @@ package de.holube.ex.ex03;
 
 import org.junit.jupiter.api.Test;
 
-public class SammelpunktTest {
+class SammelpunktTest {
 
     @Test
     void waitForAllTest() {
@@ -17,7 +17,7 @@ public class SammelpunktTest {
         }
     }
 
-    static class TestThread extends Thread {
+    private static class TestThread extends Thread {
 
         private final Sammelpunkt sammelpunkt;
 
@@ -27,7 +27,11 @@ public class SammelpunktTest {
 
         @Override
         public void run() {
-            sammelpunkt.waitForAll();
+            try {
+                sammelpunkt.waitForAll();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
             System.out.println("Thread " + getName() + " finished");
         }
     }
