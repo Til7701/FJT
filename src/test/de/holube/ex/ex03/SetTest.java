@@ -31,6 +31,11 @@ class SetTest {
             thread1.start();
         }
 
+        try {
+            Thread.sleep(100);
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+        }
         System.out.println("--------------------------");
 
         for (int i = 0; i < 2; i++) {
@@ -75,7 +80,10 @@ class SetTest {
         @Override
         public void run() {
             try {
-                for (int i = 0; i < 10; i++) set.add(value * i);
+                for (int i = 0; i < 5; i++) {
+                    set.add(value * i);
+                    System.out.println(Thread.currentThread().getName() + " added " + value * i);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
@@ -93,7 +101,10 @@ class SetTest {
         @Override
         public void run() {
             try {
-                for (int i = 0; i < 10; i++) set.remove(i);
+                for (int i = 0; i < 10; i++) {
+                    set.remove(i);
+                    System.out.println(Thread.currentThread().getName() + " removed " + i);
+                }
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }

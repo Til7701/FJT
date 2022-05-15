@@ -29,12 +29,6 @@ class VermittlerTest {
 
         @Override
         public void run() {
-            try {
-                Thread.sleep((long) (Math.random() * 10));
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-
             for (int i = 0; i < 2; i++) {
                 String returnedValue = "NOT SWAPPED YET";
                 try {

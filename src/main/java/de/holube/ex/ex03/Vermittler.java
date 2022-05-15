@@ -5,6 +5,7 @@ package de.holube.ex.ex03;
  * threads.
  *
  * @param <V> the type to swap
+ * @author Tilman Holube
  */
 public class Vermittler<V> {
 
@@ -29,10 +30,10 @@ public class Vermittler<V> {
             return myData.secondValue;
         } else {
             currentData.secondValue = v;
-            notifyAll();
-            Data myData = currentData;
+            notifyAll(); // could also be this.notify() but SonarLint doesn't like that. Even if I use a different sync object.
+            V firstValue = currentData.firstValue;
             currentData = null;
-            return myData.firstValue;
+            return firstValue;
         }
     }
 

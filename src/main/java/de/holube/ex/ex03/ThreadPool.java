@@ -5,6 +5,8 @@ import java.util.Queue;
 
 /**
  * A thread pool.
+ *
+ * @author Tilman Holube
  */
 public class ThreadPool {
 
@@ -21,6 +23,7 @@ public class ThreadPool {
         threads = new PoolThread[poolSize];
         for (int i = 0; i < poolSize; i++) {
             threads[i] = new PoolThread(this);
+            threads[i].setName("PoolThread " + i);
             threads[i].start();
         }
 
@@ -50,10 +53,28 @@ public class ThreadPool {
         }
     }
 
+    /**
+     * This method determines if the pool is working. A pool is working if at least one thread is executing a task or
+     * there is a task in the queue.
+     *
+     * @return true if the pool is working, false otherwise
+     */
+    public boolean isWorking() {
+        synchronized (syncObject) {
+            for (PoolThread thread : threads) {
+                if (thread.isWorking()) {
+                    return true;
+                }
+            }
+            return !tasks.isEmpty();
+        }
+    }
+
     private static class PoolThread extends Thread {
 
         private final ThreadPool pool;
         private volatile boolean allowedToRun;
+        private volatile boolean working;
 
         public PoolThread(ThreadPool pool) {
             this.pool = pool;
@@ -65,19 +86,24 @@ public class ThreadPool {
             while (!interrupted() && allowedToRun) {
                 Runnable task;
                 synchronized (pool.syncObject) {
+                    working = false;
                     while (pool.tasks.isEmpty()) {
                         try {
                             pool.syncObject.wait();
                         } catch (InterruptedException e) {
-                            e.printStackTrace();
                             Thread.currentThread().interrupt();
                             break;
                         }
                     }
+                    working = true;
                     task = pool.tasks.poll();
                 }
                 if (task != null) task.run();
             }
+        }
+
+        public boolean isWorking() {
+            return working;
         }
     }
 }

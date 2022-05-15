@@ -1,5 +1,9 @@
 package de.holube.ex.ex03;
 
+import org.junit.jupiter.api.Test;
+
+import static org.mockito.Mockito.*;
+
 class ThreadPoolTest {
 
     public static void main(String[] args) {
@@ -27,6 +31,15 @@ class ThreadPoolTest {
                 }
             }
         }
+
+        while (threadPool.isWorking()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        threadPool.shutdown();
     }
 
     private static class TestThread extends Thread {
@@ -57,6 +70,68 @@ class ThreadPoolTest {
                         Thread.currentThread().interrupt();
                     }
                 });
+            }
+        }
+    }
+
+    @Test
+    void mockedTest() {
+        ThreadPool threadPool = new ThreadPool(4);
+
+        final int THREADS = 5;
+        final int RUNNABLES = 10;
+        MockingThread[] threads = new MockingThread[THREADS];
+        Runnable[] runnables = new Runnable[RUNNABLES];
+
+        for (int i = 0; i < runnables.length; i++) {
+            runnables[i] = mock(Runnable.class);
+        }
+
+        for (int i = 0; i < threads.length; i++) {
+            threads[i] = new MockingThread(threadPool, runnables);
+        }
+        for (MockingThread thread : threads) {
+            thread.start();
+        }
+
+        for (MockingThread thread : threads) {
+            while (thread.isAlive()) {
+                try {
+                    thread.join();
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+
+        while (threadPool.isWorking()) {
+            try {
+                Thread.sleep(100);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+        threadPool.shutdown();
+
+        for (Runnable runnable : runnables) {
+            verify(runnable, times(THREADS)).run();
+        }
+    }
+
+    private static class MockingThread extends Thread {
+
+        private final ThreadPool threadPool;
+        private final Runnable[] runnables;
+
+        public MockingThread(ThreadPool threadPool, Runnable[] runnables) {
+            this.threadPool = threadPool;
+            this.runnables = runnables;
+        }
+
+        @Override
+        public void run() {
+            for (Runnable runnable : runnables) {
+                threadPool.execute(runnable);
             }
         }
     }

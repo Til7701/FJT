@@ -8,12 +8,14 @@ class SammelpunktTest {
     void waitForAllTest() {
         Sammelpunkt sammelpunkt = new Sammelpunkt(5);
 
-        TestThread[] threads = new TestThread[10];
+        TestThread[] threads = new TestThread[24];
 
         for (int i = 0; i < threads.length; i++) {
             threads[i] = new TestThread(sammelpunkt);
             threads[i].setName("TestThread " + i);
-            threads[i].start();
+        }
+        for (TestThread thread : threads) {
+            thread.start();
         }
     }
 
@@ -27,12 +29,14 @@ class SammelpunktTest {
 
         @Override
         public void run() {
+            System.out.println(getName() + " started");
             try {
+                System.out.println(Thread.currentThread().getName() + ": wartet auf Sammelpunkt");
                 sammelpunkt.waitForAll();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-            System.out.println("Thread " + getName() + " finished");
+            System.out.println(getName() + " finished");
         }
     }
 }
