@@ -58,12 +58,16 @@ public class Sammelpunkt {
             currentSession = new WaitingSession();
         } else {
             WaitingSession mySession = currentSession;
+            boolean interrupted = Thread.currentThread().isInterrupted();
             while (amount != mySession.getWaitingThreadsInSession()) {
                 try {
                     wait();
                 } catch (InterruptedException e) {
-                    Thread.currentThread().interrupt();
+                    interrupted = true;
                 }
+            }
+            if (interrupted) {
+                Thread.currentThread().interrupt();
             }
         }
     }
