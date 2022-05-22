@@ -4,14 +4,17 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 import java.util.NoSuchElementException;
-import java.util.concurrent.Semaphore;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReadWriteLock;
+import java.util.concurrent.locks.ReentrantReadWriteLock;
 
 public class Set<E> implements Iterable<E> {
 
-    private final Semaphore mutex = new Semaphore(1);
+    private final ReadWriteLock lock = new ReentrantReadWriteLock();
+    private final Lock readLock = lock.readLock();
+    private final Lock writeLock = lock.writeLock();
 
     private final List<E> data;
-    private int activeIterators = 0;
 
     /**
      * Creates a new set with the initial capacity of 10.
@@ -35,13 +38,13 @@ public class Set<E> implements Iterable<E> {
      * @throws InterruptedException if the thread was interrupted while waiting
      */
     public boolean add(E elem) throws InterruptedException {
+        if (contains(elem)) return false;
+        writeLock.lock();
         try {
-            mutex.acquire();
-            waitForIterators();
             if (contains(elem)) return false;
             return data.add(elem);
         } finally {
-            mutex.release();
+            writeLock.unlock();
         }
     }
 
@@ -52,16 +55,12 @@ public class Set<E> implements Iterable<E> {
      * @return true if the element is contained in this set
      */
     public boolean contains(E elem) {
+        readLock.lock();
         try {
-            mutex.acquire();
-            waitForIterators();
             return data.contains(elem);
-        } catch (InterruptedException e) {
-            // ignore
         } finally {
-            mutex.release();
+            readLock.unlock();
         }
-        return false;
     }
 
     /**
@@ -69,20 +68,14 @@ public class Set<E> implements Iterable<E> {
      *
      * @param elem the element to remove
      * @return true if the element was removed, false if it was not present
-     * @throws InterruptedException if the thread was interrupted while waiting
      */
-    public boolean remove(E elem) throws InterruptedException {
+    public boolean remove(E elem) {
+        writeLock.lock();
         try {
-            mutex.acquire();
-            waitForIterators();
             return data.remove(elem);
         } finally {
-            mutex.release();
+            writeLock.unlock();
         }
-    }
-
-    private synchronized void waitForIterators() throws InterruptedException {
-        while (activeIterators > 0) wait();
     }
 
     /**
@@ -90,8 +83,13 @@ public class Set<E> implements Iterable<E> {
      *
      * @return the number of elements in this set
      */
-    public synchronized int size() {
-        return data.size();
+    public int size() {
+        readLock.lock();
+        try {
+            return data.size();
+        } finally {
+            readLock.unlock();
+        }
     }
 
     /**
@@ -99,42 +97,33 @@ public class Set<E> implements Iterable<E> {
      *
      * @return the capacity of this set
      */
-    public synchronized int capacity() {
+    public int capacity() {
         return Integer.MAX_VALUE;
     }
 
     @Override
     public synchronized SetIterator iterator() {
-        activeIterators++;
-        return new SetIterator(this);
+        readLock.lock();
+        return new SetIterator();
     }
 
     public class SetIterator implements Iterator<E> {
 
-        private final Set<E> set;
         private int index = 0;
-
-        private SetIterator(Set<E> set) {
-            this.set = set;
-        }
 
         @Override
         public boolean hasNext() {
-            synchronized (set) {
-                return index < data.size();
-            }
+            return index < data.size();
         }
 
         @Override
         public E next() {
-            synchronized (set) {
-                if (!hasNext()) throw new NoSuchElementException();
-                E elem = data.get(index++);
-                if (index == data.size()) {
-                    endIteration();
-                }
-                return elem;
+            if (!hasNext()) throw new NoSuchElementException();
+            E elem = data.get(index++);
+            if (index == data.size()) {
+                endIteration();
             }
+            return elem;
         }
 
         /**
@@ -142,11 +131,8 @@ public class Set<E> implements Iterable<E> {
          * iteration will block other threads from modifying the set.
          */
         public void endIteration() {
-            synchronized (set) {
-                activeIterators--;
-                index = data.size();
-                set.notifyAll();
-            }
+            index = data.size();
+            readLock.unlock();
         }
     }
 

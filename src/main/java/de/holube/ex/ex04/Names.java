@@ -41,6 +41,7 @@ public class Names {
         }
 
         // telling the first to start
+        threads[0].setAllowedToContinue(true);
         LockSupport.unpark(threads[0]);
     }
 
@@ -48,6 +49,7 @@ public class Names {
 
         private final Semaphore startedSemaphore;
         private NameThread next;
+        private volatile boolean allowedToContinue;
 
         public NameThread(Semaphore startedSemaphore) {
             this.startedSemaphore = startedSemaphore;
@@ -56,22 +58,29 @@ public class Names {
         @Override
         public void run() {
             startedSemaphore.release();
-            LockSupport.park();
             while (!interrupted()) {
+                while (!allowedToContinue) {
+                    LockSupport.park();
+                }
+                setAllowedToContinue(false);
                 System.out.println(getName());
-                LockSupport.unpark(next);
-                LockSupport.park();
                 try {
-                    sleep(500);
+                    sleep(250);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     Thread.currentThread().interrupt();
                 }
+                next.setAllowedToContinue(true);
+                LockSupport.unpark(next);
             }
         }
 
         public synchronized void setNext(NameThread next) {
             this.next = next;
+        }
+
+        public synchronized void setAllowedToContinue(boolean allowedToContinue) {
+            this.allowedToContinue = allowedToContinue;
         }
     }
 }

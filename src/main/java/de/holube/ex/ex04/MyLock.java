@@ -6,16 +6,23 @@ import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
 
+/**
+ * My own implementation of a lock.
+ *
+ * @author Tilman Holube
+ */
 public class MyLock implements Lock {
 
+    private final Semaphore mutex = new Semaphore(1);
     private final Semaphore lock = new Semaphore(1);
+    private Thread owner;
 
     @Override
     public void lock() {
         boolean acquired = false;
         while (!acquired) {
             try {
-                lock.acquire();
+                lockInterruptibly();
                 acquired = true;
             } catch (InterruptedException e) {
                 // ignore
@@ -25,22 +32,60 @@ public class MyLock implements Lock {
 
     @Override
     public void lockInterruptibly() throws InterruptedException {
-        lock.acquire();
+        mutex.acquire();
+        try {
+            lock.acquire();
+            owner = Thread.currentThread();
+        } finally {
+            mutex.release();
+        }
     }
 
     @Override
     public boolean tryLock() {
-        return lock.tryAcquire();
+        boolean acquired = lock.tryAcquire();
+        if (acquired) {
+            try {
+                mutex.acquire();
+                owner = Thread.currentThread();
+            } catch (InterruptedException e) {
+                // ignore
+            } finally {
+                mutex.release();
+            }
+        }
+        return acquired;
     }
 
     @Override
     public boolean tryLock(long time, TimeUnit unit) throws InterruptedException {
-        return lock.tryAcquire(time, unit);
+        boolean acquired = lock.tryAcquire(time, unit);
+        if (acquired) {
+            try {
+                mutex.acquire();
+                owner = Thread.currentThread();
+            } catch (InterruptedException e) {
+                // ignore
+            } finally {
+                mutex.release();
+            }
+        }
+        return acquired;
     }
 
     @Override
     public void unlock() {
-        lock.release();
+        try {
+            mutex.acquire();
+            if (Thread.currentThread().equals(owner)) {
+                owner = null;
+                lock.release();
+            }
+        } catch (InterruptedException e) {
+            // ignore
+        } finally {
+            mutex.release();
+        }
     }
 
     @Override
