@@ -41,9 +41,9 @@ public class Deadlocks {
     class Thread2 extends Thread {
         @Override
         public void run() {
-            synchronized (bSync) {
-                synchronized (cSync) {
-                    synchronized (aSync) {
+            synchronized (aSync) {
+                synchronized (bSync) {
+                    synchronized (cSync) {
                         // do something
                         b = c + a;
                         System.out.println(b);
@@ -60,9 +60,9 @@ public class Deadlocks {
     class Thread3 extends Thread {
         @Override
         public void run() {
-            synchronized (cSync) {
-                synchronized (aSync) {
-                    synchronized (bSync) {
+            synchronized (aSync) {
+                synchronized (bSync) {
+                    synchronized (cSync) {
                         // do something
                         c = a + b;
                         System.out.println(c);

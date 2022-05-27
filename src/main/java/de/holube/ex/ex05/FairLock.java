@@ -15,15 +15,7 @@ public class FairLock {
             waitingThreads.add(queueObject);
 
             while (isLocked || waitingThreads.get(0) != queueObject) {
-
-                synchronized (queueObject) {
-                    try {
-                        queueObject.wait();
-                    } catch (InterruptedException e) {
-                        waitingThreads.remove(queueObject);
-                        throw e;
-                    }
-                }
+                this.wait();
             }
             waitingThreads.remove(queueObject);
             isLocked = true;
@@ -38,10 +30,7 @@ public class FairLock {
         isLocked = false;
         lockingThread = null;
         if (waitingThreads.size() > 0) {
-            Object queueObject = waitingThreads.get(0);
-            synchronized (queueObject) {
-                queueObject.notify();
-            }
+            this.notifyAll();
         }
     }
 }

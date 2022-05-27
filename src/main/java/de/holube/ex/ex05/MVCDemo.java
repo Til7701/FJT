@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import java.lang.reflect.InvocationTargetException;
 import java.util.Observable;
 import java.util.Observer;
+import java.util.concurrent.Semaphore;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReadWriteLock;
@@ -16,9 +17,10 @@ public class MVCDemo {
 
     public static void main(String[] args) {
         Number number;
-        number = new NumberSync();
+        number = new MyNumber();
+//      number = new NumberSync();
 //		number = new NumberRWLock();
-//		number = new NumberRWLock2();
+        number = new NumberRWLock2();
         GUI gui = new GUI(number);
         gui.setBounds(10, 10, 400, 800);
         gui.setVisible(true);
@@ -36,6 +38,39 @@ abstract class Number extends Observable {
     public abstract int getNumber();
 
     public abstract void setNumber(int number);
+}
+
+class MyNumber extends Number {
+
+    private final Semaphore mutex = new Semaphore(1, true);
+    private final Semaphore waiting = new Semaphore(1, true);
+
+    @Override
+    public int getNumber() {
+        mutex.acquireUninterruptibly();
+        try {
+            return number;
+        } finally {
+            mutex.release();
+        }
+    }
+
+    @Override
+    public void setNumber(int number) {
+        waiting.acquireUninterruptibly();
+        try {
+            mutex.acquireUninterruptibly();
+            try {
+                this.number = number;
+                setChanged();
+            } finally {
+                mutex.release();
+            }
+            notifyObservers();
+        } finally {
+            waiting.release();
+        }
+    }
 }
 
 class NumberSync extends Number {
