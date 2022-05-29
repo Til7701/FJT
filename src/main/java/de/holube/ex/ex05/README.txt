@@ -15,6 +15,9 @@ benutzt, ob der aufgeweckte Thread dran ist.
 Außerdem muss das notify durch ein notifyAll ersetzt werden, da mehrere Threads warten können.
 In der Klasse FairLock ist eine Lösung zu sehen.
 
+Alternativ kann für jeden wartenden Thread über das jeweilige queueObject synchronisiert werden. Dies ist aber etwas
+schwieriger zu realisieren.
+
 Aufgabe 3:
 Bei der Klasse NumberSync blockiert setNumber den Aufruf der getNumber Methode.
 Bei den beiden anderen Implementierungen der Klasse Number ...
