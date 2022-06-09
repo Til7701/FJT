@@ -9,11 +9,7 @@ public class AtomicNonReentrantLock implements Lock {
     @Override
     public void lock() {
         while (!owner.compareAndSet(null, Thread.currentThread())) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            //Thread.yield();
         }
     }
 

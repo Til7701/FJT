@@ -14,11 +14,7 @@ public class AtomicReentrantLock implements Lock {
         }
 
         while (!owner.compareAndSet(null, Thread.currentThread(), 0, 1)) {
-            try {
-                Thread.sleep(1);
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
+            //Thread.yield();
         }
         owner.set(Thread.currentThread(), 1);
     }
