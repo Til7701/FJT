@@ -1,37 +1,85 @@
 package de.holube.ex.ex06;
 
-import java.util.concurrent.atomic.AtomicMarkableReference;
+import java.util.concurrent.atomic.AtomicStampedReference;
 
+/**
+ * A class to represent a vermittler. This provides the functionality to swap two values of a given type between two
+ * threads.
+ *
+ * @param <V> the type to swap
+ * @author Tilman Holube
+ */
 public class Vermittler<V> {
 
-    private final AtomicMarkableReference<V> data = new AtomicMarkableReference<>(null, false);
-    private final AtomicMarkableReference<V> data2 = new AtomicMarkableReference<>(null, false);
+    private final AtomicStampedReference<Pair<V, V>> data = new AtomicStampedReference<>(null, 0);
 
-    //FIXME not done yet
+    /**
+     * This method returns the value of the other thread.
+     * The first call to this method will block until the other thread has set its value.
+     * The second call to this method will not return immediately. There is no fairness guaranteed.
+     *
+     * @param inValue the value to give to the other thread
+     * @return the value of the other thread
+     * @throws InterruptedException if the thread is interrupted while waiting for the second thread.
+     */
     public V tauschen(V inValue) throws InterruptedException {
-        if (data.compareAndSet(null, inValue, false, true)) { // first thread setting value
-            boolean[] mark = {false};
-            V value2 = data2.get(mark);
-            while (!data2.compareAndSet(value2, null, true, false)) { // frist thread waiting for second thread to set value
-                //Thread.yield();
-                data2.get(mark);
-                if (Thread.currentThread().isInterrupted()) {
-                    data.set(null, false);
-                    throw new InterruptedException();
-                }
+        final int[] stampHolder = {-1};
+        final Pair<V, V> newPair = new Pair<>();
+        while (true) {
+            Pair<V, V> oldPair = data.get(stampHolder);
+            newPair.setFirst(inValue);
+            newPair.setSecond(null);
+
+            if (data.compareAndSet(null, newPair, 0, 1)) { // first thread setting value
+                return waitForSecond();
             }
-            return value2;
+
+            newPair.setSecond(inValue);
+            if (data.compareAndSet(oldPair, newPair, 1, 2)) { // second thread setting value
+                return oldPair.getFirst();
+            }
+
+            if (Thread.currentThread().isInterrupted()) {
+                data.set(null, 0);
+                throw new InterruptedException();
+            }
+        }
+    }
+
+    private V waitForSecond() throws InterruptedException {
+        final int[] markHolder = {-1};
+        Pair<V, V> pair = data.get(markHolder);
+        while (!data.compareAndSet(pair, null, 2, 0)) {
+            //Thread.yield();
+            pair = data.get(markHolder);
+            if (Thread.currentThread().isInterrupted()) {
+                data.set(null, 0);
+                throw new InterruptedException();
+            }
+        }
+        return pair.getSecond();
+    }
+
+    private static class Pair<X, Y> {
+
+        private X first = null;
+        private Y second = null;
+
+        public X getFirst() {
+            return first;
         }
 
-        // second thread setting value
-        boolean[] mark = {false};
-        V value = data.get(mark);
-        while (!data.compareAndSet(value, inValue, mark[0], false)) { // second thread waiting for first thread to set value
-            //Thread.yield();
-            data.get(mark);
-            if (Thread.currentThread().isInterrupted()) throw new InterruptedException();
+        public void setFirst(X first) {
+            this.first = first;
         }
-        return value;
+
+        public Y getSecond() {
+            return second;
+        }
+
+        public void setSecond(Y second) {
+            this.second = second;
+        }
     }
 
 }

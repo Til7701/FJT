@@ -1,40 +1,67 @@
 package de.holube.ex.ex06;
 
-public class VermittlerTest {
+import org.junit.jupiter.api.Test;
 
-    public static void main(String[] args) {
-        Vermittler<String> vermittler = new Vermittler<>();
+import java.util.ArrayList;
+import java.util.List;
 
-        TestThread[] threads = new TestThread[5];
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
+class VermittlerTest {
+
+    @Test
+    void test() {
+        Vermittler<TestThread> vermittler = new Vermittler<>();
+
+        TestThread[] threads = new TestThread[8];
 
         for (int i = 0; i < threads.length; i++) {
-            threads[i] = new TestThread(vermittler, "Thread " + i);
-            threads[i].setName("TestThread " + i);
+            threads[i] = new TestThread(vermittler);
+            threads[i].setName("TestThread-" + i);
             threads[i].start();
+        }
+
+        for (TestThread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        for (TestThread thread : threads) {
+            for (int i = 0; i < thread.getReturnedThreads().size(); i++) {
+                assertTrue(thread.getReturnedThreads().get(i).getReturnedThreads().contains(thread));
+            }
         }
     }
 
     private static class TestThread extends Thread {
 
-        private final Vermittler<String> vermittler;
-        private final String value;
+        private final Vermittler<TestThread> vermittler;
+        private final List<TestThread> returnedThreads;
 
-        public TestThread(Vermittler<String> vermittler, String value) {
+        public TestThread(Vermittler<TestThread> vermittler) {
             this.vermittler = vermittler;
-            this.value = value;
+            this.returnedThreads = new ArrayList<>();
         }
 
         @Override
         public void run() {
-            for (int i = 0; i < 1; i++) {
-                String returnedValue = "NOT SWAPPED YET";
+            for (int i = 0; i < 2; i++) {
+                TestThread returnedValue = null;
                 try {
-                    returnedValue = vermittler.tauschen(value);
+                    returnedValue = vermittler.tauschen(this);
+                    returnedThreads.add(returnedValue);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-                System.out.println("Thread " + getName() + " got " + returnedValue);
+                System.out.println("Thread " + getName() + " got " + returnedValue.getName());
             }
+        }
+
+        public List<TestThread> getReturnedThreads() {
+            return returnedThreads;
         }
     }
 
