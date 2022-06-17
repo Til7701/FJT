@@ -66,5 +66,13 @@ public class TraverseTest {
         } else {
             System.out.println("nicht gefunden");
         }
+
+        System.out.print("BreadthFirstSearchParallel: ");
+        t = root.bfsParallel("5");
+        if (t != null) {
+            System.out.println(t.getValue());
+        } else {
+            System.out.println("nicht gefunden");
+        }
     }
 }

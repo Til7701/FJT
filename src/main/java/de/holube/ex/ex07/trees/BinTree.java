@@ -1,5 +1,10 @@
 package de.holube.ex.ex07.trees;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.BlockingDeque;
+import java.util.concurrent.LinkedBlockingDeque;
+
 public class BinTree {
 
     private Node root;
@@ -178,6 +183,46 @@ public class BinTree {
             }
             if (!tree.getRight().isEmpty()) {
                 queue.enque(tree.getRight());
+            }
+        }
+        return null;
+    }
+
+    public BinTree bfsParallel(String data) {
+        final int WORKER = Runtime.getRuntime().availableProcessors();
+        BinTreeThread.TerminationMonitor barrier = new BinTreeThread.TerminationMonitor(WORKER);
+
+        @SuppressWarnings("unchecked")
+        BlockingDeque<BinTree>[] queues = new LinkedBlockingDeque[WORKER];
+        for (int i = 0; i < WORKER; i++) {
+            queues[i] = new LinkedBlockingDeque<>();
+        }
+        queues[0].offerFirst(this);
+
+        List<BinTreeThread> worker = new ArrayList<>();
+        for (int i = 0; i < WORKER; i++) {
+            BinTreeThread t = new BinTreeThread(i, data, queues, barrier);
+            t.setName("Worker " + i);
+            worker.add(t);
+        }
+
+        for (int i = 0; i < WORKER; i++) {
+            worker.get(i).start();
+        }
+
+        for (int i = 0; i < WORKER; i++) {
+            try {
+                worker.get(i).join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        BinTree result;
+        for (int i = 0; i < WORKER; i++) {
+            result = worker.get(i).getResult();
+            if (result != null) {
+                return result;
             }
         }
         return null;
