@@ -1,13 +1,11 @@
 package de.holube.ex.ex07.actor;
 
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.*;
 
 public abstract class Actor extends Thread {
 
     private final BlockingQueue<ActorMessage> messageQueue = new ArrayBlockingQueue<>(10);
-    private final ConcurrentHashMap<Long, Response> responseMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Long, BlockingQueue<Response>> responseMap = new ConcurrentHashMap<>();
     private long messageHandle = 0;
 
     protected Actor() {
@@ -31,21 +29,17 @@ public abstract class Actor extends Thread {
             response = onReceive(msg.message);
 
             // speichern des Ergebnisses
-            synchronized (responseMap) {
-                responseMap.put(msg.handle, response);
-                responseMap.notifyAll();
-            }
+            responseMap.get(msg.handle).add(response);
         }
     }
 
     // asynchrones Senden einer Nachricht; geliefert wird ein eindeutiges "Handle"
     // ueber das spaeter die Antwort abgefragt werden kann
     public long send(Message msg) {
-        try {
-            messageQueue.put(new ActorMessage(messageHandle, msg));
-        } catch (InterruptedException e) {
-            // ignore
-        }
+        BlockingDeque<Response> responseBlockingDeque = new LinkedBlockingDeque<>();
+        responseMap.put(messageHandle, responseBlockingDeque);
+        //noinspection ResultOfMethodCallIgnored
+        messageQueue.offer(new ActorMessage(messageHandle, msg));
         return messageHandle++;
     }
 
@@ -55,20 +49,17 @@ public abstract class Actor extends Thread {
     // das vorher via send erzeugt wurde und dessen Antwort noch nicht abgerufen
     // worden ist
     public Response getResponse(long msgHandle) {
-        synchronized (responseMap) {
-            while (true) {
-                while (responseMap.isEmpty()) {
-                    try {
-                        responseMap.wait();
-                    } catch (InterruptedException e) {
-                    }
-                }
-                Response response = responseMap.remove(msgHandle);
-                if (response != null) {
-                    return response;
-                }
+        Response response = null;
+        BlockingQueue<Response> responseBlockingDeque = responseMap.get(msgHandle);
+        while (response == null) {
+            try {
+                response = responseBlockingDeque.take();
+            } catch (InterruptedException e) {
+                // ignore
             }
         }
+        responseMap.remove(msgHandle);
+        return response;
     }
 
     public abstract Response onReceive(Message msg);
