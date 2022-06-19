@@ -3,8 +3,9 @@ package de.holube.ex.ex07.trees;
 import java.util.concurrent.BlockingDeque;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
-public class BinTreeThread extends Thread {
+public class BinTreeBFSThread extends Thread {
 
     private final int nr;
     private final BlockingDeque<BinTree>[] workDeque;
@@ -12,9 +13,9 @@ public class BinTreeThread extends Thread {
 
     private final String data;
 
-    private BinTree result;
+    private AtomicReference<BinTree> result = new AtomicReference<>();
 
-    public BinTreeThread(int nr, String data, BlockingDeque<BinTree>[] workDeque, TerminationMonitor barrier) {
+    public BinTreeBFSThread(int nr, String data, BlockingDeque<BinTree>[] workDeque, TerminationMonitor barrier) {
         setDaemon(true);
 
         this.nr = nr;
@@ -34,7 +35,7 @@ public class BinTreeThread extends Thread {
             // Prüfe, ob in der dem Task zugeordneten Queue Elemente vorhanden sind
             while (tree != null && !this.barrier.isFound()) {
                 if (tree.getValue().equals(this.data)) {
-                    this.result = tree;
+                    this.result.set(tree);
                     this.barrier.setFound(true);
                     return;
                 }
@@ -53,6 +54,9 @@ public class BinTreeThread extends Thread {
 
             // Queue ist jetzt leer
             this.barrier.setActive(false);
+            if (this.barrier.isFound()) {
+                return;
+            }
 
             // Work-Stealing-Procedure
 
@@ -82,8 +86,14 @@ public class BinTreeThread extends Thread {
         }
     }
 
+    /**
+     * Returns the result of the search. This should only be called after the thread
+     * has finished.
+     *
+     * @return the result of the search
+     */
     public BinTree getResult() {
-        return result;
+        return result.get();
     }
 
     public static class TerminationMonitor {

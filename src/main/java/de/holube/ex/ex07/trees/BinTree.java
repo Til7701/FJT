@@ -190,7 +190,7 @@ public class BinTree {
 
     public BinTree bfsParallel(String data) {
         final int WORKER = Runtime.getRuntime().availableProcessors();
-        BinTreeThread.TerminationMonitor barrier = new BinTreeThread.TerminationMonitor(WORKER);
+        BinTreeBFSThread.TerminationMonitor barrier = new BinTreeBFSThread.TerminationMonitor(WORKER);
 
         @SuppressWarnings("unchecked")
         BlockingDeque<BinTree>[] queues = new LinkedBlockingDeque[WORKER];
@@ -199,9 +199,9 @@ public class BinTree {
         }
         queues[0].offerFirst(this);
 
-        List<BinTreeThread> worker = new ArrayList<>();
+        List<BinTreeBFSThread> worker = new ArrayList<>();
         for (int i = 0; i < WORKER; i++) {
-            BinTreeThread t = new BinTreeThread(i, data, queues, barrier);
+            BinTreeBFSThread t = new BinTreeBFSThread(i, data, queues, barrier);
             t.setName("Worker " + i);
             worker.add(t);
         }
