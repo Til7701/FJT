@@ -13,7 +13,7 @@ public class BinTreeBFSThread extends Thread {
 
     private final String data;
 
-    private AtomicReference<BinTree> result = new AtomicReference<>();
+    private final AtomicReference<BinTree> result = new AtomicReference<>();
 
     public BinTreeBFSThread(int nr, String data, BlockingDeque<BinTree>[] workDeque, TerminationMonitor barrier) {
         setDaemon(true);

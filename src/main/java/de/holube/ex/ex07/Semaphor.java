@@ -26,7 +26,7 @@ public class Semaphor {
      */
     public void p() {
         Object o = null;
-        boolean interrupted = false;
+        boolean interrupted = Thread.interrupted();
 
         while (o == null) {
             try {

@@ -1,12 +1,13 @@
 package de.holube.ex.ex07.actor;
 
 import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 public abstract class Actor extends Thread {
 
     private final BlockingQueue<ActorMessage> messageQueue = new ArrayBlockingQueue<>(10);
     private final ConcurrentHashMap<Long, BlockingQueue<Response>> responseMap = new ConcurrentHashMap<>();
-    private long messageHandle = 0;
+    private final AtomicLong messageHandle = new AtomicLong(0);
 
     protected Actor() {
         setDaemon(true);
@@ -36,11 +37,12 @@ public abstract class Actor extends Thread {
     // asynchrones Senden einer Nachricht; geliefert wird ein eindeutiges "Handle"
     // ueber das spaeter die Antwort abgefragt werden kann
     public long send(Message msg) {
+        long mh = messageHandle.getAndIncrement();
         BlockingDeque<Response> responseBlockingDeque = new LinkedBlockingDeque<>();
-        responseMap.put(messageHandle, responseBlockingDeque);
+        responseMap.put(mh, responseBlockingDeque);
         //noinspection ResultOfMethodCallIgnored
-        messageQueue.offer(new ActorMessage(messageHandle, msg));
-        return messageHandle++;
+        messageQueue.offer(new ActorMessage(mh, msg));
+        return mh;
     }
 
     // abfragen einer Antwort zu einer nachricht ueber das entsprechende Handle der
