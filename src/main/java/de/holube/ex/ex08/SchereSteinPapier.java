@@ -2,6 +2,7 @@ package de.holube.ex.ex08;
 
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.Phaser;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class SchereSteinPapier {
@@ -33,15 +34,20 @@ public class SchereSteinPapier {
 
     public static void main(String[] args) {
         Queue<HandZeichen> handZeichenQueue = new ConcurrentLinkedQueue<>();
+        Phaser phaser = new Phaser(3);
 
         Runnable spieler = () -> {
             while (true) {
+                phaser.arriveAndAwaitAdvance();
                 handZeichenQueue.add(HandZeichen.random());
+                phaser.arriveAndAwaitAdvance();
             }
         };
         Runnable schiedsrichter = () -> {
             while (true) {
+                phaser.arriveAndAwaitAdvance();
                 System.out.println("Schnick, Schnack, Schnuck");
+                phaser.arriveAndAwaitAdvance();
                 HandZeichen handZeichen1 = handZeichenQueue.poll();
                 HandZeichen handZeichen2 = handZeichenQueue.poll();
                 switch (handZeichen1.schlaegt(handZeichen2)) {

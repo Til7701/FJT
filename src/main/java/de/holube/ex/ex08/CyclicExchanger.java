@@ -3,8 +3,9 @@ package de.holube.ex.ex08;
 public class CyclicExchanger<V> {
 
     private int next;
-    private Object[] data;
+    private final Object[] data;
     private final int number;
+    private boolean full = false;
 
     public CyclicExchanger(int number) {
         if (number < 2) {
@@ -17,16 +18,30 @@ public class CyclicExchanger<V> {
 
     @SuppressWarnings("unchecked")
     public synchronized V exchange(V value) throws InterruptedException {
+        while (full) {
+            wait();
+        }
+
         if (next == number - 1) {
             data[next] = value;
-            next = 0;
+            full = true;
             notifyAll();
             return (V) data[number - 2];
         } else {
             data[next] = value;
             int index = next;
             next++;
-            wait();
+
+            while (!full) {
+                wait();
+            }
+
+            next--;
+            if (next == 0) {
+                full = false;
+                notifyAll();
+            }
+
             int prev = Math.floorMod(index - 1, number);
             return (V) data[prev];
         }

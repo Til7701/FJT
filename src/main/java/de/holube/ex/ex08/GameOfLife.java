@@ -1,5 +1,8 @@
 package de.holube.ex.ex08;
 
+import java.util.concurrent.BrokenBarrierException;
+import java.util.concurrent.CyclicBarrier;
+
 public class GameOfLife {
 
     public static void main(String[] args) {
@@ -20,13 +23,17 @@ public class GameOfLife {
     private final int numberOfRows;
     private final int numberOfColumns;
 
+    private final CyclicBarrier barrier;
+
     public GameOfLife(int rows, int cols) {
+        barrier = new CyclicBarrier((rows * cols) + 1);
         cells = new Cell[rows][cols];
         numberOfRows = rows;
         numberOfColumns = cols;
         for (int r = 0; r < cells.length; r++) {
             for (int c = 0; c < cells[0].length; c++) {
                 cells[r][c] = new Cell(r, c);
+                cells[r][c].setDaemon(true);
             }
         }
     }
@@ -60,27 +67,27 @@ public class GameOfLife {
     }
 
     public void runSimulation() {
-        boolean[][] newStates = new boolean[numberOfRows][numberOfColumns];
-        while (true) {
-            for (int r = 0; r < cells.length; r++) {
-                for (int c = 0; c < cells[0].length; c++) {
-                    newStates[r][c] = cells[r][c].calcNextState();
-                }
+        for (Cell[] cs : cells) {
+            for (Cell c : cs) {
+                c.start();
             }
-            for (int r = 0; r < cells.length; r++) {
-                for (int c = 0; c < cells[0].length; c++) {
-                    cells[r][c].setState(newStates[r][c]);
-                }
-            }
-            print();
-            try {
+        }
+        try {
+            barrier.await();
+
+            while (!Thread.interrupted()) {
+                barrier.await();
+                barrier.await();
+
+                print();
                 Thread.sleep(500);
-            } catch (Exception exc) {
             }
+        } catch (InterruptedException | BrokenBarrierException e) {
+
         }
     }
 
-    class Cell {
+    class Cell extends Thread {
         private final int row;
         private final int col;
 
@@ -90,6 +97,22 @@ public class GameOfLife {
             row = r;
             col = c;
             living = false;
+        }
+
+        @Override
+        public void run() {
+            try {
+                barrier.await();
+
+                while (!Thread.interrupted()) {
+                    boolean nextState = calcNextState();
+                    barrier.await();
+                    living = nextState;
+                    barrier.await();
+                }
+            } catch (BrokenBarrierException | InterruptedException e) {
+                // ignore
+            }
         }
 
         public void changeState() {
