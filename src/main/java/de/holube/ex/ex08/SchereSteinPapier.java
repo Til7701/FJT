@@ -39,6 +39,7 @@ public class SchereSteinPapier {
         Runnable spieler = () -> {
             while (true) {
                 phaser.arriveAndAwaitAdvance();
+                phaser.arriveAndAwaitAdvance();
                 handZeichenQueue.add(HandZeichen.random());
                 phaser.arriveAndAwaitAdvance();
             }
@@ -47,6 +48,7 @@ public class SchereSteinPapier {
             while (true) {
                 phaser.arriveAndAwaitAdvance();
                 System.out.println("Schnick, Schnack, Schnuck");
+                phaser.arriveAndAwaitAdvance();
                 phaser.arriveAndAwaitAdvance();
                 HandZeichen handZeichen1 = handZeichenQueue.poll();
                 HandZeichen handZeichen2 = handZeichenQueue.poll();

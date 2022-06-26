@@ -83,7 +83,7 @@ public class GameOfLife {
                 Thread.sleep(500);
             }
         } catch (InterruptedException | BrokenBarrierException e) {
-
+            // ignore
         }
     }
 
