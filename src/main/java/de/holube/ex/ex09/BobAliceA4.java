@@ -1,15 +1,20 @@
 package de.holube.ex.ex09;
 
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
-import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.*;
 
 class AliceA4 extends Thread {
 
-    private BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+    private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
+
+    private final ScheduledExecutorService executorService;
+
+    public AliceA4(ScheduledExecutorService executorService) {
+        this.executorService = executorService;
+    }
 
     @Override
     public void run() {
+        executorService.schedule(this::interrupt, 30, TimeUnit.SECONDS);
         while (!interrupted()) {
             try {
                 String message = messages.take();
@@ -29,40 +34,25 @@ class AliceA4 extends Thread {
 
 }
 
-class BobA4 extends Thread {
+class BobA4 {
 
-    private AliceA4 alice;
-
-    public BobA4(String name, AliceA4 alice) {
-        super(name);
-        this.alice = alice;
+    public BobA4(String name, AliceA4 alice, ScheduledExecutorService executorService) {
+        executorService.scheduleAtFixedRate(() -> alice.send("Greetings from " + name + "!"), 10, 2, TimeUnit.SECONDS);
+        executorService.schedule(executorService::shutdown, 60, TimeUnit.SECONDS);
     }
 
-    @Override
-    public void run() {
-        while (!interrupted()) {
-            String message = "Greetings from " + getName() + "!";
-            alice.send(message);
-            try {
-                Thread.sleep(ThreadLocalRandom.current().nextLong(1000));
-            } catch (InterruptedException e) {
-                interrupt();
-            }
-        }
-    }
 }
 
 public class BobAliceA4 {
 
     public static void main(String[] args) throws Exception {
-        AliceA4 alice = new AliceA4();
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+        AliceA4 alice = new AliceA4(executor);
         alice.start();
         for (int i = 1; i < 100; i++) {
-            Thread bob = new BobA4("Bob-" + i, alice);
-            bob.start();
+            new BobA4("Bob-" + i, alice, executor);
             Thread.sleep(ThreadLocalRandom.current().nextLong(100));
         }
-
     }
 
 }
