@@ -11,13 +11,13 @@ import java.security.NoSuchAlgorithmException;
 import java.util.Base64;
 import java.util.concurrent.*;
 
-class Alice extends Thread {
+class AliceA3 extends Thread {
 
     private final BlockingQueue<String> messages = new LinkedBlockingQueue<>();
 
     private final CryptoAG cryptoAG;
 
-    public Alice(CryptoAG cryptoAG) {
+    public AliceA3(CryptoAG cryptoAG) {
         this.cryptoAG = cryptoAG;
     }
 
@@ -43,13 +43,13 @@ class Alice extends Thread {
 
 }
 
-class Bob extends Thread {
+class BobA3 extends Thread {
 
-    private final Alice alice;
+    private final AliceA3 alice;
 
     private final CryptoAG cryptoAG;
 
-    public Bob(String name, Alice alice, CryptoAG cryptoAG) {
+    public BobA3(String name, AliceA3 alice, CryptoAG cryptoAG) {
         super(name);
         this.alice = alice;
         this.cryptoAG = cryptoAG;
@@ -122,14 +122,14 @@ class CryptoAG {
 
 }
 
-public class BobAlice {
+public class BobAliceA3 {
 
     public static void main(String[] args) throws Exception {
         CryptoAG cryptoAG = new CryptoAG();
-        Alice alice = new Alice(cryptoAG);
+        AliceA3 alice = new AliceA3(cryptoAG);
         alice.start();
         for (int i = 1; i < 100; i++) {
-            Thread bob = new Bob("Bob-" + i, alice, cryptoAG);
+            Thread bob = new BobA3("Bob-" + i, alice, cryptoAG);
             bob.start();
             Thread.sleep(ThreadLocalRandom.current().nextLong(100));
         }
