@@ -34,11 +34,12 @@ public class CharacterCount {
                 } catch (InterruptedException e) {
                     interrupted = true;
                 } catch (ExecutionException e) {
-                    // ignore
+                    gotResult = true;
                 }
             }
         }
-        if (interrupted) Thread.currentThread().interrupt();
+        if (interrupted)
+            Thread.currentThread().interrupt();
         return result;
     }
 
@@ -46,11 +47,13 @@ public class CharacterCount {
 
         @Override
         public Integer call() {
-            if (string == null || string.isEmpty()) return 0;
+            if (string == null || string.isEmpty())
+                return 0;
 
             int counter = 0;
             for (int i = 0; i < string.length(); i++) {
-                if (string.charAt(i) == ch) counter++;
+                if (string.charAt(i) == ch)
+                    counter++;
             }
             return counter;
         }

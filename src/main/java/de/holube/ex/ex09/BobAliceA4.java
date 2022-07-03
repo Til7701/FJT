@@ -37,8 +37,8 @@ class AliceA4 extends Thread {
 class BobA4 {
 
     public BobA4(String name, AliceA4 alice, ScheduledExecutorService executorService) {
-        executorService.scheduleAtFixedRate(() -> alice.send("Greetings from " + name + "!"), 10, 2, TimeUnit.SECONDS);
-        executorService.schedule(executorService::shutdown, 60, TimeUnit.SECONDS);
+        ScheduledFuture<?> future = executorService.scheduleAtFixedRate(() -> alice.send("Greetings from " + name + "!"), 10, 2, TimeUnit.SECONDS);
+        executorService.schedule(() -> future.cancel(false), 60, TimeUnit.SECONDS);
     }
 
 }
@@ -46,13 +46,15 @@ class BobA4 {
 public class BobAliceA4 {
 
     public static void main(String[] args) throws Exception {
-        ScheduledExecutorService executor = Executors.newScheduledThreadPool(2);
+        ScheduledExecutorService executor = Executors.newScheduledThreadPool(4);
         AliceA4 alice = new AliceA4(executor);
         alice.start();
         for (int i = 1; i < 100; i++) {
             new BobA4("Bob-" + i, alice, executor);
             Thread.sleep(ThreadLocalRandom.current().nextLong(100));
         }
+        executor.awaitTermination(90, TimeUnit.SECONDS);
+        executor.shutdown();
     }
 
 }

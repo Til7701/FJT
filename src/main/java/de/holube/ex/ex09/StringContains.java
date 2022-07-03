@@ -31,16 +31,18 @@ public class StringContains {
                 try {
                     Future<String> future = completionService.take();
                     String string = future.get();
-                    if (string != null) result.add(string);
+                    if (string != null)
+                        result.add(string);
                     gotResult = true;
                 } catch (InterruptedException e) {
                     interrupted = true;
                 } catch (ExecutionException e) {
-                    // ignore
+                    gotResult = true;
                 }
             }
         }
-        if (interrupted) Thread.currentThread().interrupt();
+        if (interrupted)
+            Thread.currentThread().interrupt();
         return result;
     }
 
@@ -48,10 +50,13 @@ public class StringContains {
 
         @Override
         public String call() {
-            if (string == null || string.isEmpty()) return null;
+            if (string == null || string.isEmpty())
+                return null;
 
-            String c = "" + ch;
-            if (string.contains(c)) return string;
+            String c = String.valueOf(ch);
+            if (string.contains(c))
+                return string;
+
             return null;
         }
 

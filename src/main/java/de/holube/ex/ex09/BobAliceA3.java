@@ -59,9 +59,7 @@ class BobA3 extends Thread {
     public void run() {
         while (!interrupted()) {
             String message = "Greetings from " + getName() + "!";
-            String encrypted = cryptoAG.encrypt(message);
-            System.out.println("Sending: " + encrypted);
-            alice.send(encrypted);
+            alice.send(cryptoAG.encrypt(message));
             try {
                 Thread.sleep(ThreadLocalRandom.current().nextLong(1000));
             } catch (InterruptedException e) {
@@ -95,9 +93,10 @@ class CryptoAG {
     }
 
     private String getResultUninterruptibly(Callable<String> callable) {
+        Future<String> future = executorService.submit(callable);
         while (true) {
             try {
-                return executorService.submit(callable).get();
+                return future.get();
             } catch (InterruptedException e) {
                 // ignore
             } catch (ExecutionException e) {
