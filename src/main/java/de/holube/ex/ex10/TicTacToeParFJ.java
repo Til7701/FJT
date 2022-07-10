@@ -113,7 +113,7 @@ public class TicTacToeParFJ {
 
                             // Call minimax recursively and choose
                             // the maximum value
-                            MiniMaxTask task = new MiniMaxTask(board, !isMax);
+                            MiniMaxTask task = new MiniMaxTask(board, false);
                             best = Math.max(best, task.compute());
 
                             // Undo the move
@@ -138,7 +138,7 @@ public class TicTacToeParFJ {
 
                             // Call minimax recursively and choose
                             // the minimum value
-                            MiniMaxTask task = new MiniMaxTask(board, !isMax);
+                            MiniMaxTask task = new MiniMaxTask(board, true);
                             best = Math.min(best, task.compute());
 
                             // Undo the move
@@ -155,7 +155,7 @@ public class TicTacToeParFJ {
 
     //This will return the best possible
     //move for the player
-    static Move findBestMove(char board[][]) {
+    static Move findBestMove(char[][] board) {
         int bestVal = -1000;
         Move bestMove = new Move();
         bestMove.row = -1;
@@ -170,11 +170,12 @@ public class TicTacToeParFJ {
             for (int j = 0; j < 3; j++) {
                 // Check if cell is empty
                 if (board[i][j] == '_') {
-                    // Make the move
+                    // copy array
                     char[][] boardCopy = new char[board.length][board[0].length];
                     for (int k = 0; k < board.length; k++) {
                         System.arraycopy(board[k], 0, boardCopy[k], 0, board[k].length);
                     }
+                    // Make the move
                     boardCopy[i][j] = player;
 
                     // compute evaluation function for this
@@ -188,13 +189,13 @@ public class TicTacToeParFJ {
 
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                // Check if cell is empty
+                // Check if cell has a task
                 if (tasks[i][j] != null) {
                     int moveVal = tasks[i][j].join();
 
                     // If the value of the current move is
                     // more than the best value, then update
-                    // best/
+                    // best
                     if (moveVal > bestVal || (moveVal == bestVal && ThreadLocalRandom.current().nextBoolean())) {
                         bestMove.row = i;
                         bestMove.col = j;

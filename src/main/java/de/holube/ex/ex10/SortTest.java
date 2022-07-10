@@ -24,28 +24,31 @@ public class SortTest {
         long start = System.nanoTime();
         MergeSortSequential.sort(values);
         long end = System.nanoTime();
-        System.out.println("Sequential took " + (end - start) + " ns; in Seconds: " + (end - start) / 1_000_000_000.0);
+        System.out.println("Sequential: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
+        values = new Integer[ARRAY_SIZE];
         Arrays.setAll(values, i -> random.nextInt());
 
         start = System.nanoTime();
         MergeSortParFJ.sort(values);
         end = System.nanoTime();
-        System.out.println("ParallelFJ took " + (end - start) + " ns; in Seconds: " + (end - start) / 1_000_000_000.0);
+        System.out.println("ParallelFJ: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
+        values = new Integer[ARRAY_SIZE];
         Arrays.setAll(values, i -> random.nextInt());
 
         start = System.nanoTime();
         Arrays.sort(values);
         end = System.nanoTime();
-        System.out.println("Arrays.sort took " + (end - start) + " ns; in Seconds: " + (end - start) / 1_000_000_000.0);
+        System.out.println("Arrays.sort: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
+        values = new Integer[ARRAY_SIZE];
         Arrays.setAll(values, i -> random.nextInt());
 
         start = System.nanoTime();
         Arrays.parallelSort(values);
         end = System.nanoTime();
-        System.out.println("Arrays.parallelSort took " + (end - start) + " ns; in Seconds: " + (end - start) / 1_000_000_000.0);
+        System.out.println("Arrays.parallelSort: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
     }
 
 }

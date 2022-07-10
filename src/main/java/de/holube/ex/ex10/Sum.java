@@ -1,5 +1,6 @@
 package de.holube.ex.ex10;
 
+import java.util.Arrays;
 import java.util.Random;
 import java.util.concurrent.RecursiveTask;
 
@@ -43,8 +44,8 @@ public class Sum {
             } else {
                 int mid = (start + end) / 2;
                 SumTask left = new SumTask(start, mid, values);
-                SumTask right = new SumTask(mid, end, values);
                 left.fork();
+                SumTask right = new SumTask(mid, end, values);
                 return right.compute() + left.join();
             }
         }
@@ -55,7 +56,7 @@ public class Sum {
 
     public static void main(String[] args) {
         final int ITERATIONS = 5;
-        final int ARRAY_SIZE = 1_000_000;
+        final int ARRAY_SIZE = 10_000_000;
 
         for (int i = 0; i < ITERATIONS; i++) {
             testRun(ARRAY_SIZE);
@@ -63,30 +64,22 @@ public class Sum {
     }
 
     private static void testRun(int arraySize) {
-        System.out.println("Filling array with random values");
         int[] values = new int[arraySize];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = random.nextInt();
-        }
+        Arrays.setAll(values, i -> random.nextInt());
 
-        //System.out.println("Starting sequential sum");
         long start = System.nanoTime();
         int sum = sumSeq(values);
         long end = System.nanoTime();
-        System.out.println("Sequential sum took " + (end - start) + " ns; Result: " + sum);
+        System.out.println("Sequential: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s; Result: " + sum);
 
-        System.out.println("Filling array with random values");
         values = new int[arraySize];
-        for (int i = 0; i < values.length; i++) {
-            values[i] = random.nextInt();
-        }
+        Arrays.setAll(values, i -> random.nextInt());
 
-        //System.out.println("Starting parallel sum");
         start = System.nanoTime();
         sum = sumFJ(values);
         end = System.nanoTime();
-        System.out.println("Parallel sum took " + (end - start) + " ns; Result: " + sum);
-        System.out.println("-----------------------------------------------------");
+        System.out.println("Parallel: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s; Result: " + sum);
+        System.out.println("---------------------------------------------------------");
     }
 
 }

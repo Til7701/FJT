@@ -44,11 +44,13 @@ public class FileSearch {
                             task.fork();
                         } else if (f.getName().equals(fileName)) {
                             result.set(f.getAbsolutePath());
+                            quietlyCompleteRoot();
                         }
                     }
                 }
             } else if (file.getName().equals(fileName)) {
                 result.set(file.getAbsolutePath());
+                quietlyCompleteRoot();
             }
             propagateCompletion();
         }
@@ -57,8 +59,11 @@ public class FileSearch {
     public static void main(String[] args) {
         String path = "C:\\Users\\Tilman\\IdeaProjects\\FJT";
         String fileName = "FileSearch.java";
+        long start = System.currentTimeMillis();
         String result = findPath(path, fileName);
+        long end = System.currentTimeMillis();
         System.out.println(result);
+        System.out.println("Time: " + (end - start) + " ms");
     }
 
 }
