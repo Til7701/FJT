@@ -1,6 +1,7 @@
 package de.holube.ex.ex11;
 
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class Prim {
 
@@ -34,6 +35,17 @@ public class Prim {
                 .count() + 1;
     }
 
+    public static int primParWO2Infinite() {
+        return (int) Stream.iterate(3, i -> i + 2)
+                .limit(500_000)
+                .parallel()
+                .filter(i ->
+                        IntStream.range(2, (int) Math.sqrt(i) + 1)
+                                .noneMatch(j -> i % j == 0)
+                )
+                .count() + 1;
+    }
+
     private static final int ITERATIONS = 5;
 
     public static void main(String[] args) {
@@ -56,6 +68,11 @@ public class Prim {
 
         start = System.nanoTime();
         System.out.println(primParWO2());
+        end = System.nanoTime();
+        System.out.println("ParallelWO2: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
+
+        start = System.nanoTime();
+        System.out.println(primParWO2Infinite());
         end = System.nanoTime();
         System.out.println("ParallelWO2: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
     }

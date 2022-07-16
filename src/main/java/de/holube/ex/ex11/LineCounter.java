@@ -8,7 +8,6 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.OptionalLong;
 import java.util.Set;
 import java.util.stream.Stream;
@@ -24,7 +23,11 @@ public class LineCounter {
     }
 
     public static long countOccurrence(String path, String search, boolean parallelLines) {
-        return countOccurrence(path, search, Set.of(StandardCharsets.UTF_8), parallelLines, false);
+        return countOccurrence(path, search, Set.of(StandardCharsets.UTF_8), parallelLines);
+    }
+
+    public static long countOccurrence(String path, String search) {
+        return countOccurrence(path, search, false);
     }
 
     private final String search;
@@ -42,7 +45,10 @@ public class LineCounter {
     private long countOccurrence(String path) {
         File file = new File(path);
         if (file.isDirectory()) {
-            Stream<File> stream = Arrays.stream(Objects.requireNonNull(file.listFiles()));
+            File[] files = file.listFiles();
+            if (files == null)
+                return 0;
+            Stream<File> stream = Arrays.stream(files);
             if (!parallelLines) {
                 //noinspection ResultOfMethodCallIgnored
                 stream.parallel();

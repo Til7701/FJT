@@ -6,7 +6,6 @@ import java.io.UncheckedIOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Arrays;
-import java.util.Objects;
 import java.util.stream.Stream;
 
 public class LineCounterSimple {
@@ -18,9 +17,15 @@ public class LineCounterSimple {
     public static long countOccurrence(String path, String search) {
         File file = new File(path);
         if (file.isDirectory()) {
-            return Arrays.stream(Objects.requireNonNull(file.listFiles()))
+            File[] files = file.listFiles();
+            if (files == null)
+                return 0;
+            return Arrays.stream(files)
                     .parallel()
-                    .mapToLong(f -> countOccurrence(f.getAbsolutePath(), search))
+                    .mapToLong(f -> {
+                        System.out.println(f.getAbsolutePath());
+                        return countOccurrence(f.getAbsolutePath(), search);
+                    })
                     .sum();
         } else {
             return countInFile(path, search);
