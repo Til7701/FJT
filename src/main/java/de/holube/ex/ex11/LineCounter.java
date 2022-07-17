@@ -62,7 +62,7 @@ public class LineCounter {
     }
 
     private long countInFile(String path) {
-        OptionalLong result = charsets.parallelStream()
+        OptionalLong result = charsets.stream()
                 .mapToLong(charset -> {
                     try {
                         return countInFileWithCharset(path, charset);
@@ -81,7 +81,7 @@ public class LineCounter {
         }
     }
 
-    private long countInFileWithCharset(String path, Charset charset) throws IOException {
+    private long countInFileWithCharset(String path, Charset charset) throws UncheckedIOException, IOException {
         try (Stream<String> stream = Files.lines(Path.of(path), charset)) {
             if (parallelLines) {
                 //noinspection ResultOfMethodCallIgnored

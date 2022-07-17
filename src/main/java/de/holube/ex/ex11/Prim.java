@@ -37,7 +37,7 @@ public class Prim {
 
     public static int primParWO2Infinite() {
         return (int) Stream.iterate(3, i -> i + 2)
-                .limit(500_000)
+                .limit(500_000) // not correct, but correct result
                 .parallel()
                 .filter(i ->
                         IntStream.range(2, (int) Math.sqrt(i) + 1)
@@ -59,22 +59,22 @@ public class Prim {
         long start = System.nanoTime();
         System.out.println(primSeq());
         long end = System.nanoTime();
-        System.out.println("Sequential: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
+        System.out.println("Sequential:          " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
         start = System.nanoTime();
         System.out.println(primPar());
         end = System.nanoTime();
-        System.out.println("Parallel: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
+        System.out.println("Parallel:            " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
         start = System.nanoTime();
         System.out.println(primParWO2());
         end = System.nanoTime();
-        System.out.println("ParallelWO2: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
+        System.out.println("ParallelWO2:         " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
 
         start = System.nanoTime();
         System.out.println(primParWO2Infinite());
         end = System.nanoTime();
-        System.out.println("ParallelWO2: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
+        System.out.println("ParallelWO2Infinite: " + (end - start) + " ns; " + (end - start) / 1_000_000_000.0 + " s");
     }
 
 }

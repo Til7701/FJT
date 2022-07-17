@@ -22,10 +22,7 @@ public class LineCounterSimple {
                 return 0;
             return Arrays.stream(files)
                     .parallel()
-                    .mapToLong(f -> {
-                        System.out.println(f.getAbsolutePath());
-                        return countOccurrence(f.getAbsolutePath(), search);
-                    })
+                    .mapToLong(f -> countOccurrence(f.getAbsolutePath(), search))
                     .sum();
         } else {
             return countInFile(path, search);

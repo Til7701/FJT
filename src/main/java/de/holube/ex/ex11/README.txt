@@ -2,7 +2,7 @@ Aufgabe 1: Prim
 
 Aufgabe 2:
 Main: LineCounterMain
-Einfache Version: LineCounterSimple
+Einfache Version: LineCounterSimple (durchsucht nur UTF-8 Dateien)
 Komplexe Version: LineCounter
 
 Probleme bei relativ großen Ordnern (Bei den Tests waren in dem Ordner 16 kleine Java-Projekte):
